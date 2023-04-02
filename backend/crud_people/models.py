@@ -8,5 +8,6 @@ class Person(models.Model):
     job = models.CharField(max_length=50)
     email = models.EmailField(verbose_name="Email")
 
+    #display the data with first_name
     def __str__(self):
-        return self.name
+        return self.first_name
