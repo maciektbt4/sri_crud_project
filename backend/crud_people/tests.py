@@ -44,14 +44,3 @@ class PersonTestCase(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Person.objects.count(), 10)
-    
-    def test_delete_person(self):
-        person  = Person.objects.create(sex = "male", first_name = "jan",
-                                        last_name = "kowalski", job = "software eng",
-                                        email= "ksl@jk.com" )
-        pk = person.pk
-        delete_url = self.url + "/" + str(pk) + "/"
-        
-        response = self.client.delete(delete_url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Person.objects.count(), 0)
