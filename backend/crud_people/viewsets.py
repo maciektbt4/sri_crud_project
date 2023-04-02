@@ -28,5 +28,5 @@ class PersonViewSet(viewsets.ModelViewSet):
     def delete(request, id):
         data = get_object_or_404(Person, id=id) 
         data.delete()
-        return Response("voila",status = status.HTTP_200_OK)
+        return Response(status = status.HTTP_200_OK)
     
