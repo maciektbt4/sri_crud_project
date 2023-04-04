@@ -10,12 +10,14 @@ class PersonViewSet(viewsets.ViewSet):
 
     #get all
     def list(self, request):
-        serializer = PersonSerializer(self.queryset, many=True)
+        queryset = Person.objects.all()
+        serializer = PersonSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     #get one by id
     def retrieve(self, request, pk=None):
-        person = get_object_or_404(self.queryset, pk=pk)
+        queryset = Person.objects.all()
+        person = get_object_or_404(queryset, pk=pk)
         serializer = PersonSerializer(person)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -29,13 +31,15 @@ class PersonViewSet(viewsets.ViewSet):
 
     #delete one by id
     def destroy(self, request,pk): 
-        person=get_object_or_404(self.queryset, pk=pk)
+        queryset = Person.objects.all()
+        person=get_object_or_404(queryset, pk=pk)
         person.delete()
         return Response({'msg':f'Person datas with id = {pk} is deleted'}, status=status.HTTP_200_OK)           
 
     #put update one by id    
     def update(self, request, pk=None):
-        person=get_object_or_404(self.queryset, pk=pk)
+        queryset = Person.objects.all()
+        person=get_object_or_404(queryset, pk=pk)
         serializer=PersonSerializer(person, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -44,7 +48,8 @@ class PersonViewSet(viewsets.ViewSet):
 
     #patch partial (not all fields required in request) update one by id    
     def partial_update(self, request, pk=None):
-        person=get_object_or_404(self.queryset, pk=pk)
+        queryset = Person.objects.all()
+        person=get_object_or_404(queryset, pk=pk)
         serializer=PersonSerializer(person, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()

@@ -4,6 +4,7 @@ from rest_framework.fields import CharField, EmailField
 from crud_people.models import Person
 
 class PersonSerializer(serializers.ModelSerializer):
+	email = serializers.EmailField()
 	
 	class Meta:
 		model = Person
