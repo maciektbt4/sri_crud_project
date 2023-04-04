@@ -3,8 +3,6 @@ from rest_framework import serializers
 from rest_framework.fields import CharField, EmailField
 from crud_people.models import Person
 
-
-
 class PersonSerializer(serializers.ModelSerializer):
 	
 	class Meta:
