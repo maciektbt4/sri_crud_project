@@ -38,9 +38,11 @@ class PersonViewSet(viewsets.ViewSet):
 
     #put update one by id    
     def update(self, request, pk=None):
-        queryset = Person.objects.all()
-        person=get_object_or_404(queryset, pk=pk)
-        serializer=PersonSerializer(person, data=request.data)
+        try:
+            person = Person.objects.get(pk = pk)  
+            serializer=PersonSerializer(person, data=request.data)
+        except:
+            serializer=PersonSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data,  status=status.HTTP_202_ACCEPTED)
