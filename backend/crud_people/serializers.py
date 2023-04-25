@@ -1,7 +1,7 @@
 from . import models
 from rest_framework import serializers
 from rest_framework.fields import CharField, EmailField
-from crud_people.models import Person
+from crud_people.models import Person, Hobby
 from datetime import date
 
 class PersonSerializer(serializers.ModelSerializer):
@@ -18,3 +18,7 @@ class PersonSerializer(serializers.ModelSerializer):
 		model = Person
 		fields = ['id', 'sex', 'first_name', 'last_name', 'job', 'email', "birth_date"]
 
+class HobbySerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Hobby
+		fields = ['id', 'name', 'person']

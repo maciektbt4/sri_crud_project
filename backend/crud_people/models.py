@@ -14,3 +14,7 @@ class Person(models.Model):
     #display the data with first_name
     def __str__(self):
         return self.first_name
+
+class Hobby(models.Model):
+    name = models.CharField(max_length=200)
+    person = models.ManyToManyField(Person)

@@ -1,5 +1,5 @@
-from crud_people.models import Person
-from crud_people.serializers import PersonSerializer
+from crud_people.models import Person, Hobby
+from crud_people.serializers import PersonSerializer, HobbySerializer
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -57,3 +57,7 @@ class PersonViewSet(viewsets.ViewSet):
             serializer.save()
             return Response(serializer.data,  status=status.HTTP_202_ACCEPTED)
         return Response(serializer.errors , status=status.HTTP_400_BAD_REQUEST)
+
+class HobbyViewSet(viewsets.ModelViewSet):
+    queryset = Hobby.objects.all()
+    serializer_class = HobbySerializer
