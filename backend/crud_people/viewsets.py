@@ -62,7 +62,7 @@ class PersonViewSet(viewsets.ViewSet):
     
     #Exercise 3: return all cars from defined owner- custom url
     @action(detail=True, methods=['get'])
-    def car_list(self, request, pk=None):
+    def cars(self, request, pk=None):
         cars = Car.objects.all()        
         cars_person_owned = cars.filter(owner = pk)
            
@@ -73,7 +73,38 @@ class PersonViewSet(viewsets.ViewSet):
 
         serializer = CarSerializer(cars_person_owned, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['post'], url_path='remove_car/(?P<car_id>[^/.]+)')
+    def remove_car(self, request, pk=None, car_id=None):
+        try:
+            car = Car.objects.get(pk = car_id, owner = pk)
+            car.owner = None
+            car.save()
+            return Response(CarSerializer(car).data, status=status.HTTP_202_ACCEPTED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class CarViewSet(viewsets.ModelViewSet):
     queryset = Car.objects.all()
     serializer_class = CarSerializer
+
+    @action(detail=True, methods=['post'], url_path='add_owner/(?P<owner_id>[^/.]+)')
+    def add_owner(self, request, pk=None, owner_id=None):
+        try:
+            car = Car.objects.get(pk=pk)
+            person = Person.objects.get(pk=owner_id)
+            car.owner = person
+            car.save()
+            return Response(CarSerializer(car).data, status=status.HTTP_202_ACCEPTED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def remove_owner(self, request, pk=None):
+        try:
+            car = Car.objects.get(pk=pk)
+            car.owner = None
+            car.save()
+            return Response(CarSerializer(car).data, status=status.HTTP_202_ACCEPTED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
