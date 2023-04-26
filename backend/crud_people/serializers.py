@@ -1,10 +1,14 @@
-from . import models
 from rest_framework import serializers
-from rest_framework.fields import CharField, EmailField
-from crud_people.models import Person, Hobby
+from crud_people.models import Person, Car
 from datetime import date
 
+class CarSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Car
+		fields = ['id','plate','make','model', 'year', 'owner']
+
 class PersonSerializer(serializers.ModelSerializer):
+	cars = CarSerializer(many=True, read_only=True)
 	email = serializers.EmailField()
 	birth_date = serializers.DateField()
 
@@ -16,9 +20,5 @@ class PersonSerializer(serializers.ModelSerializer):
 	
 	class Meta:
 		model = Person
-		fields = ['id', 'sex', 'first_name', 'last_name', 'job', 'email', "birth_date"]
+		fields = ['id', 'sex', 'first_name', 'last_name', 'job', 'email', 'birth_date', 'cars']
 
-class HobbySerializer(serializers.ModelSerializer):
-	class Meta:
-		model = Hobby
-		fields = ['id', 'name', 'person']
