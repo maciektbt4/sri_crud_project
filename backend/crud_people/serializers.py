@@ -4,11 +4,13 @@ from datetime import date
 
 class CarSerializer(serializers.ModelSerializer):
 	year = int
+
 	def validate_year(self,year):
 		earliest_construction_year = 1886
 		if year < earliest_construction_year or year > date.today().year:
 			raise serializers.ValidationError('Construction year must be greather than 1886 and smaller or equal this year.')
 		return year
+	
 	class Meta:
 		model = Car
 		fields = ['id','plate','make','model', 'year', 'owner']

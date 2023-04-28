@@ -1,34 +1,76 @@
 from rest_framework.decorators import action
 from crud_people.models import Person, Car
 from crud_people.serializers import PersonSerializer, CarSerializer
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, renderers
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 
+class GenerateLinks():
+    def add_self_link(request, serializer, view_name, *args):
+        response = {}
+        response.update({'results': serializer.data})
+        if len(args) > 0:
+            response.update({'_links':{'self':request.build_absolute_uri(reverse(view_name, args = args[0]))}})
+        else:
+            response.update({'_links':{'self':request.build_absolute_uri(reverse(view_name))}})
+        
+        return response   
+
+    
 class PersonViewSet(viewsets.ViewSet):
     queryset = Person.objects.all()
     serializer_class = PersonSerializer
-   
+       
     #get all
     def list(self, request):
-        queryset = Person.objects.all()
-        serializer = PersonSerializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
+        persons = Person.objects.all()
+        serializer = PersonSerializer(persons, many=True, context={'request': request})
+        response_data = GenerateLinks.add_self_link(request, serializer, 'person-list')
+
+        # generate links for each person
+        i=0
+        for p in persons:
+            response_data['results'][i]['href'] = request.build_absolute_uri(reverse('person-detail', args= [p.id]))     
+
+            cars = Car.objects.filter(owner = p.id) 
+            # generate links for each car
+            j=0
+            for c in cars:
+                response_data['results'][i]['cars'][j]['href'] = request.build_absolute_uri(reverse('car-detail', args= [c.id]))    
+                j+=1         
+            i+=1  
+
+        return Response(response_data, status=status.HTTP_200_OK)    
+
     #get one by id
     def retrieve(self, request, pk=None):
         queryset = Person.objects.all()
-        # queryset = queryset.prefetch_related('car_set')
         person = get_object_or_404(queryset, pk=pk)
-        serializer = PersonSerializer(person)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = PersonSerializer(person, context={'request': request})
+        response_data = GenerateLinks.add_self_link(request, serializer, 'person-detail', pk)
+
+        cars = Car.objects.filter(owner = pk) 
+        if cars:
+            # generate link for car list    
+            response_data['results']['href']=request.build_absolute_uri(reverse('person-cars', args= [pk]))
+
+        cars = Car.objects.filter(owner = pk) 
+        # generate links for each car
+        i=0
+        for c in cars:
+            response_data['results']['cars'][i]['href'] = request.build_absolute_uri(reverse('car-detail', args= [c.id]))    
+            i+=1
+        
+        return Response(response_data, status=status.HTTP_200_OK)
     
     #put create
     def create(self,request):
         serializer=PersonSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data,  status=status.HTTP_201_CREATED)
+            response_data = GenerateLinks.add_self_link(request, serializer, 'person-list')
+            return Response(response_data,  status=status.HTTP_201_CREATED)
         return Response(serializer.errors , status=status.HTTP_400_BAD_REQUEST)
 
     #delete one by id
@@ -72,7 +114,15 @@ class PersonViewSet(viewsets.ViewSet):
             return Response(f"Person with id = {pk} is not found", status=status.HTTP_404_NOT_FOUND)
 
         serializer = CarSerializer(cars_person_owned, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        response_data= GenerateLinks.add_self_link(request, serializer, 'person-cars', pk)
+        # generate links
+        i=0
+        for c in cars_person_owned:
+            response_data['results'][i]['href'] = request.build_absolute_uri(reverse('car-detail', args= [c.id]))    
+            i+=1
+
+        return Response(response_data, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'], url_path='remove_car/(?P<car_id>[^/.]+)')
     def remove_car(self, request, pk=None, car_id=None):
@@ -87,6 +137,29 @@ class PersonViewSet(viewsets.ViewSet):
 class CarViewSet(viewsets.ModelViewSet):
     queryset = Car.objects.all()
     serializer_class = CarSerializer
+
+    #get all
+    def list(self, request):
+        cars = Car.objects.all()
+        serializer = CarSerializer(cars, many=True, context={'request': request})
+
+        response_data= GenerateLinks.add_self_link(request, serializer, 'car-list')
+        # generate links
+        i=0
+        for c in cars:
+            response_data['results'][i]['href'] = request.build_absolute_uri(reverse('car-detail', args= [c.id]))    
+            i+=1
+
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+    #get one by id
+    def retrieve(self, request, pk=None):
+        queryset = Car.objects.all()
+        car = get_object_or_404(queryset, pk=pk)
+        serializer = CarSerializer(car, context={'request': request})
+        response_data = GenerateLinks.add_self_link(request, serializer, 'car-detail', pk)
+        
+        return Response(response_data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], url_path='add_owner/(?P<owner_id>[^/.]+)')
     def add_owner(self, request, pk=None, owner_id=None):
